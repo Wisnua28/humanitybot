@@ -4,6 +4,6 @@ Bot sederhana untuk melakukan check-in harian ke Humanity Protocol menggunakan t
 
 ## 🛠 Cara Menggunakan
 
-1. git clone 
+1. git clone https://github.com/Wisnua28/humanitybot.git
 2. cd humanitybot
 3. npm instal
