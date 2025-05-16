@@ -1,20 +1,12 @@
-const fs = require('fs');
 const axios = require('axios');
+const fs = require('fs');
 
-// Baca token dari file token.txt
-const TOKEN_PATH = 'token.txt';
-
-if (!fs.existsSync(TOKEN_PATH)) {
-  console.error('File token.txt tidak ditemukan. Harap buat file token.txt dan masukkan token Anda.');
-  process.exit(1);
-}
-
-const TOKEN = fs.readFileSync(TOKEN_PATH, 'utf8').trim();
+const TOKEN = fs.readFileSync('token.txt', 'utf8').trim();
 
 const checkIn = async () => {
   try {
     const response = await axios.post(
-      'https://api.humanityprotocol.io/api/user/daily-check-in',
+      'https://testnet.humanity.org/api/user/daily-check-in',
       {},
       {
         headers: {
@@ -30,3 +22,4 @@ const checkIn = async () => {
 };
 
 checkIn();
+
