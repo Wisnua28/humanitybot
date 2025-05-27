@@ -1,4 +1,1 @@
-token1_here
-token2_here
-token3_here
-
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (tanpa kata Bearer)
