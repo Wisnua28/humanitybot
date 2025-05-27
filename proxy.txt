@@ -1,1 +1,2 @@
-http://username:passwd@198.23.239.134:6540
+http://username:password@198.23.239.134:6540
+
