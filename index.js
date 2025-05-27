@@ -1,103 +1,127 @@
-import fs from "fs";
-import axios from "axios";
-import chalk from "chalk";
-import Table from "cli-table3";
+const fs = require("fs");
+const axios = require("axios");
+const chalk = require("chalk");
+const Table = require("cli-table3");
+
+// Config & data files
+const BASE_URL = "https://testnet.humanity.org";
+const TOKEN_FILE = "token.txt";
+const PROXY_FILE = "proxy.txt";
 
 // Load tokens
-const TOKENS = fs.readFileSync("tokens.txt", "utf-8").split("\n").filter(Boolean);
-// Load proxies
-const PROXIES = fs.existsSync("proxy.txt")
-  ? fs.readFileSync("proxy.txt", "utf-8").split("\n").filter(Boolean)
-  : [];
-
-const BASE_URL = "https://testnet.humanity.org";
-
-console.log(chalk.cyan("Auto Claim Humanity Protocol 🚀"));
-console.log(chalk.green(`🔌 Total proxy ditemukan: ${PROXIES.length}`));
-console.log("");
-
-function getProxy(index) {
-  if (PROXIES.length === 0) return null;
-  return PROXIES[index % PROXIES.length];
+function loadTokens() {
+  if (!fs.existsSync(TOKEN_FILE)) {
+    console.log(chalk.red(`❌ File ${TOKEN_FILE} tidak ditemukan!`));
+    process.exit(1);
+  }
+  const data = fs.readFileSync(TOKEN_FILE, "utf-8");
+  return data
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 }
 
-async function callAPI(endpoint, token, proxy, method = "POST", body = {}) {
-  const url = BASE_URL + endpoint;
-  const headers = {
-    accept: "application/json, text/plain, */*",
-    "content-type": "application/json",
-    authorization: `Bearer ${token}`,
-    token: token,
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-  };
-  const axiosConfig = {
-    method,
-    url,
-    headers,
-    data: method === "POST" ? body : undefined,
-    proxy: false,
-    timeout: 15000,
-  };
+// Load proxies
+function loadProxies() {
+  if (!fs.existsSync(PROXY_FILE)) {
+    return [];
+  }
+  const data = fs.readFileSync(PROXY_FILE, "utf-8");
+  return data
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
 
+// Axios instance with optional proxy
+function createAxiosInstance(proxy) {
+  const config = {
+    timeout: 15000,
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "content-type": "application/json",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    },
+  };
   if (proxy) {
+    // Proxy format: http://username:password@ip:port
+    // Parse proxy URL
     try {
-      const proxyUrl = new URL(proxy);
-      axiosConfig.proxy = {
-        host: proxyUrl.hostname,
-        port: Number(proxyUrl.port),
+      const url = new URL(proxy);
+      config.proxy = {
+        protocol: url.protocol.replace(":", ""),
+        host: url.hostname,
+        port: Number(url.port),
+        auth: {
+          username: url.username,
+          password: url.password,
+        },
       };
-      if (proxyUrl.username && proxyUrl.password) {
-        axiosConfig.proxy.auth = {
-          username: proxyUrl.username,
-          password: proxyUrl.password,
-        };
-      }
-    } catch {
-      // Invalid proxy format, ignore proxy
-      axiosConfig.proxy = false;
+    } catch (e) {
+      console.log(chalk.red(`❌ Format proxy salah: ${proxy}`));
+      process.exit(1);
     }
   }
-
-  const response = await axios(axiosConfig);
-  return response.data;
+  return axios.create(config);
 }
 
-async function processToken(token, index) {
-  console.log(chalk.green(`🔹 Memulai Token #${index + 1}`));
-
-  const proxy = getProxy(index);
-  if (proxy) {
-    console.log(chalk.green(`🔌 Menggunakan proxy: ${proxy}`));
-  }
-
+// API call wrapper
+async function call(endpoint, token, method = "POST", body = null, axiosInstance) {
+  const url = BASE_URL + endpoint;
+  const headers = {
+    authorization: `Bearer ${token}`,
+    token: token,
+  };
   try {
-    const userInfo = await callAPI("/api/user/userInfo", token, proxy);
-    const user = userInfo.data || {};
+    let response;
+    if (method.toUpperCase() === "GET") {
+      response = await axiosInstance.get(url, { headers });
+    } else {
+      response = await axiosInstance.post(url, body || {}, { headers });
+    }
+    return response.data;
+  } catch (error) {
+    if (error.response) {
+      const msg = error.response.data?.message || error.response.statusText;
+      throw new Error(`${error.response.status} ${error.response.statusText}: ${msg}`);
+    } else {
+      throw new Error(error.message);
+    }
+  }
+}
 
+// Process each token
+async function processToken(token, index, proxy) {
+  console.log(chalk.cyan(`\n🔹 Memulai Token #${index + 1}`));
+  const axiosInstance = createAxiosInstance(proxy);
+  try {
+    const userInfo = await call("/api/user/userInfo", token, "POST", null, axiosInstance);
+    const userData = userInfo.data || {};
+    // Table for user info
     const table = new Table({
-      head: [chalk.cyan("Informasi"), chalk.white("Nilai")],
-      style: { head: [], border: [] },
-      colWidths: [15, 50],
+      head: [chalk.magenta("Informasi"), chalk.white("Nilai")],
+      colWidths: [20, 50],
     });
-
     table.push(
-      ["✅ Nickname", user.nickName || "Unknown"],
-      ["✅ Wallet", user.ethAddress || "Unknown"]
+      [chalk.cyan("✅ Nickname"), userData.nickName || "Unknown"],
+      [chalk.cyan("✅ Wallet"), userData.ethAddress || "Unknown"]
     );
     console.log(table.toString());
 
-    const balance = await callAPI("/api/rewards/balance", token, proxy, "GET");
-    console.log(chalk.yellow(`💰 Point HP : ${balance.balance?.total_rewards ?? 0}`));
+    const balance = await call("/api/rewards/balance", token, "GET", null, axiosInstance);
+    const totalRewards = balance.balance?.total_rewards || 0;
+    console.log(chalk.yellow(`💰 Point HP : ${totalRewards}`));
 
-    const status = await callAPI("/api/rewards/daily/check", token, proxy);
-    console.log(chalk.blue(`📊 Status: ${status.message || "-"}`));
+    const rewardStatus = await call("/api/rewards/daily/check", token, "POST", null, axiosInstance);
+    const statusMessage = rewardStatus.message || "-";
+    console.log(chalk.blue(`📊 Status: ${statusMessage}`));
 
-    if (!status.available) {
+    if (!rewardStatus.available) {
       console.log(chalk.hex("#FFA500")("⏳ Sudah klaim hari ini, skip..."));
       return;
     }
 
-    const claim = await callAPI("/api/rewards/daily/claim", token, proxy);
+    const claim = await call("/api/rewards/daily/claim", token, "POST", null, axiosInstance);
     const claimData = claim.data || {};
     if (claimData.amount) {
       console.log(chalk.green(`🎉 Klaim berhasil, HP Point: ${claimData.amount}`));
@@ -108,43 +132,65 @@ async function processToken(token, index) {
       return;
     }
 
-    const updatedBalance = await callAPI("/api/rewards/balance", token, proxy, "GET");
+    const updatedBalance = await call("/api/rewards/balance", token, "GET", null, axiosInstance);
     if (updatedBalance.balance) {
       console.log(chalk.green(`💰 HP Point setelah klaim: ${updatedBalance.balance.total_rewards}`));
     } else {
       console.log(chalk.red(`❌ Gagal memperbarui HP Point: ${JSON.stringify(updatedBalance)}`));
     }
   } catch (err) {
-    console.log(chalk.red(`❌ Error: ${err.message || err}`));
+    console.log(chalk.red(`❌ Error: ${err.message}`));
   }
-
-  const delay = (Math.random() * (20 - 15) + 15) * 1000;
-  console.log(chalk.yellow(`⏳ Menunggu ${(delay / 1000).toFixed(2)} detik sebelum lanjut...`));
-  await new Promise((r) => setTimeout(r, delay));
+  const delay = Math.floor(Math.random() * (20000 - 15000 + 1) + 15000) / 1000;
+  console.log(chalk.yellow(`⏳ Menunggu ${delay.toFixed(2)} detik sebelum lanjut...`));
+  await new Promise((r) => setTimeout(r, delay * 1000));
 }
 
+// Countdown timer
+function countdown(seconds, onFinish) {
+  let remaining = seconds;
+  process.stdout.write("\n");
+  const interval = setInterval(() => {
+    const h = Math.floor(remaining / 3600);
+    const m = Math.floor((remaining % 3600) / 60);
+    const s = remaining % 60;
+    process.stdout.write(`\r⏳ Menunggu ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")} untuk claim selanjutnya... `);
+    remaining--;
+    if (remaining < 0) {
+      clearInterval(interval);
+      console.log("\n" + chalk.green("⏳ Countdown selesai, memulai putaran baru..."));
+      onFinish();
+    }
+  }, 1000);
+
+  // Handle Ctrl+C
+  process.on("SIGINT", () => {
+    clearInterval(interval);
+    console.log("\n" + chalk.red("🛑 Program dihentikan oleh pengguna."));
+    process.exit(0);
+  });
+}
+
+// Main loop
 async function startRound() {
-  console.log(chalk.green(`🚀 Accounts total : ${TOKENS.length} akun...`));
-  for (let i = 0; i < TOKENS.length; i++) {
-    await processToken(TOKENS[i], i);
+  const tokens = loadTokens();
+  const proxies = loadProxies();
+
+  console.log(chalk.cyan("\nAuto Claim Humanity Protocol 🚀"));
+  console.log(chalk.green(`🔌 Total proxy ditemukan: ${proxies.length}\n`));
+  console.log(chalk.green(`🚀 Accounts total : ${tokens.length} akun...`));
+
+  for (let i = 0; i < tokens.length; i++) {
+    const proxy = proxies.length > 0 ? proxies[i % proxies.length] : null;
+    if (proxy) {
+      console.log(chalk.green(`🔌 Menggunakan proxy: ${proxy}`));
+    }
+    await processToken(tokens[i], i, proxy);
   }
+
   console.log(chalk.green("✅ Claim done, next claim waiting 24 hours..."));
-  await countdown(24 * 60 * 60);
+  countdown(24 * 60 * 60, startRound);
 }
 
-async function countdown(seconds) {
-  while (seconds > 0) {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    process.stdout.write(`\r⏳ Menunggu ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")} untuk claim selanjutnya`);
-    await new Promise((r) => setTimeout(r, 1000));
-    seconds--;
-  }
-  console.log("\n");
-  await startRound();
-}
-
-(async () => {
-  await startRound();
-})();
+// Run
+startRound();
