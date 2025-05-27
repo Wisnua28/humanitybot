@@ -1,19 +1,13 @@
 {
   "name": "humanity-bot-nodejs",
   "version": "1.0.0",
-  "description": "Auto claim bot for Humanity Protocol with multi account and proxy support",
+  "description": "Bot auto-claim Humanity Protocol dengan multi-token & proxy support",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
-  "author": "",
-  "license": "MIT",
   "dependencies": {
-    "axios": "^1.4.0",
-    "chalk": "^5.3.0",
-    "cli-table3": "^0.6.2",
-    "https-proxy-agent": "^5.0.1"
+    "axios": "^1.6.8",
+    "chalk": "^5.3.0"
   }
 }
-
