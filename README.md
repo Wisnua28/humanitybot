@@ -18,7 +18,6 @@ Automatically waits 24 hours before the next claim cycle.
 ## Persiapan
 
 1. Clone the repository
-
 ```bash
 git clone https://github.com/Wisnua28/humanitybot.git
 cd humanitybot
@@ -26,14 +25,12 @@ cd humanitybot
 
 2. Install dependensi
 Make sure Node.js is installed (version 16 or higher is recommended).
-
 ```bash
 npm install axios chalk cli-table3 https-proxy-agent
 ```
 
-3.Add your tokens
+3. Add your tokens
 Edit the tokens.txt file and paste your tokens, one token per line.
-
 ```bash
 nano tokens.txt
 ```
@@ -41,13 +38,11 @@ nano tokens.txt
 4. Add proxies (optional)
 Edit the proxy.txt file and paste your proxies, one proxy per line, using the format:
 http://username:password@ip:port
-
 ```bash
 nano proxy.txt
 ```
 
 5. Run the bot
-
 ```bash
 node index.js
 ```
