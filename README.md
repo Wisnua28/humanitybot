@@ -17,25 +17,37 @@ Auto claim Humanity Protocol testnet rewards menggunakan Node.js dengan dukungan
 
 ## Persiapan
 
-### 1. Clone repositori
+1. Clone repositori
 
 ```bash
 git clone https://github.com/Wisnua28/humanitybot.git
 cd humanitybot
-
+```
 2. Install dependensi
 Pastikan sudah install Node.js (versi 16 ke atas disarankan).
 
 ```bash
 npm install
-
+```
 3. Memasukkan token
-Buat file token.txt di folder root project.
-
-Masukkan token kamu di dalamnya, satu token per baris, tanpa kata Bearer.
-
-Contoh token.txt: 
 ```bash
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIx...
-token_lain_anda...
+nano tokens.txt
+```
+
+4. Memasukkan proxy (opsional)
+```bash
+nano proxy.txt
+```
+
+Menjalankan bot :
+```bash
+node index.js
+```
+
+
+
+
+
+
+
 
