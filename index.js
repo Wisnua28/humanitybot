@@ -3,7 +3,7 @@ const axios = require("axios");
 const chalk = require("chalk");
 const Table = require("cli-table3");
 
-// Tampilkan header ASCII art LOL dengan teks di tengah dan warna putih
+// Header ASCII art dengan warna putih, muncul saat program start
 console.log(chalk.white(`
                ██╗      ██████╗ ██╗     
                ██║     ██╔═══██╗██║     
@@ -57,8 +57,6 @@ function createAxiosInstance(proxy) {
     },
   };
   if (proxy) {
-    // Proxy format: http://username:password@ip:port
-    // Parse proxy URL
     try {
       const url = new URL(proxy);
       config.proxy = {
@@ -167,7 +165,9 @@ function countdown(seconds, onFinish) {
     const h = Math.floor(remaining / 3600);
     const m = Math.floor((remaining % 3600) / 60);
     const s = remaining % 60;
-    process.stdout.write(`\r⏳ Menunggu ${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")} untuk claim selanjutnya... `);
+    process.stdout.write(`\r⏳ Menunggu ${h.toString().padStart(2, "0")}:${m
+      .toString()
+      .padStart(2, "0")}:${s.toString().padStart(2, "0")} untuk claim selanjutnya... `);
     remaining--;
     if (remaining < 0) {
       clearInterval(interval);
