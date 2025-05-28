@@ -3,6 +3,19 @@ const axios = require("axios");
 const chalk = require("chalk");
 const Table = require("cli-table3");
 
+// Tampilkan header ASCII art LOL dengan teks di tengah dan warna putih
+console.log(chalk.white(`
+               ██╗      ██████╗ ██╗     
+               ██║     ██╔═══██╗██║     
+               ██║     ██║   ██║██║     
+               ██║     ██║   ██║██║     
+               ███████╗╚██████╔╝███████╗
+               ╚══════╝ ╚═════╝ ╚══════╝
+
+              AUTO CLAIM DAILY HUMANITY PROTOCOL
+                         |KAMU JOMBLO YA|
+`));
+
 // Config & data files
 const BASE_URL = "https://testnet.humanity.org";
 const TOKEN_FILE = "token.txt";
