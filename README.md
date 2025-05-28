@@ -15,7 +15,7 @@ Displays user info, wallet address, and HP points.
 Automatically waits 24 hours before the next claim cycle.
 ---
 
-## Persiapan
+
 
 1. Clone the repository
 ```bash
