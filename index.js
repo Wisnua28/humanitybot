@@ -2,19 +2,21 @@ const fs = require("fs");
 const axios = require("axios");
 const chalk = require("chalk");
 const Table = require("cli-table3");
+const cfonts = require("cfonts"); // Tambahan
 
-// Header ASCII art dengan warna putih, muncul saat program start
-console.log(chalk.white(`
-               ██╗      ██████╗ ██╗     
-               ██║     ██╔═══██╗██║     
-               ██║     ██║   ██║██║     
-               ██║     ██║   ██║██║     
-               ███████╗╚██████╔╝███████╗
-               ╚══════╝ ╚═════╝ ╚══════╝
+// Logo "LOL" saat program dijalankan
+cfonts.say('LOL', {
+  font: 'block', // Gaya font (bisa coba: block, chrome, simple, etc)
+  align: 'center',
+  colors: ['red', 'yellow'],
+  background: 'black',
+  letterSpacing: 1,
+  lineHeight: 1,
+  space: true,
+});
 
-              AUTO CLAIM DAILY HUMANITY PROTOCOL
-                         |KAMU JOMBLO YA|
-`));
+console.log(chalk.gray("          AUTO CLAIM DAILY HUMANITY PROTOCOL"));
+console.log(chalk.gray("                  |KAMU JOMBLO YA|"));
 
 // Config & data files
 const BASE_URL = "https://testnet.humanity.org";
@@ -108,7 +110,6 @@ async function processToken(token, index, proxy) {
   try {
     const userInfo = await call("/api/user/userInfo", token, "POST", null, axiosInstance);
     const userData = userInfo.data || {};
-    // Table for user info
     const table = new Table({
       head: [chalk.magenta("Informasi"), chalk.white("Nilai")],
       colWidths: [20, 50],
@@ -176,7 +177,6 @@ function countdown(seconds, onFinish) {
     }
   }, 1000);
 
-  // Handle Ctrl+C
   process.on("SIGINT", () => {
     clearInterval(interval);
     console.log("\n" + chalk.red("🛑 Program dihentikan oleh pengguna."));
