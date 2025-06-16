@@ -32,7 +32,7 @@ npm install axios chalk cli-table3 https-proxy-agent
 3. Add your tokens
 Edit the tokens.txt file and paste your tokens, one token per line.
 ```bash
-nano tokens.txt
+nano token.txt
 ```
 
 4. Add proxies (optional)
