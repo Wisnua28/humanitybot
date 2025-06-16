@@ -4,7 +4,7 @@ import chalk from "chalk";
 import Table from "cli-table3";
 import cfonts from "cfonts";
 
-// Logo "LOL" saat program dijalankan
+// Logo saat start
 cfonts.say('LOL', {
   font: 'block',
   align: 'center',
