@@ -1,12 +1,12 @@
-const fs = require("fs");
-const axios = require("axios");
-const chalk = require("chalk");
-const Table = require("cli-table3");
-const cfonts = require("cfonts"); // Tambahan
+import fs from "fs";
+import axios from "axios";
+import chalk from "chalk";
+import Table from "cli-table3";
+import cfonts from "cfonts";
 
 // Logo "LOL" saat program dijalankan
 cfonts.say('LOL', {
-  font: 'block', // Gaya font (bisa coba: block, chrome, simple, etc)
+  font: 'block',
   align: 'center',
   colors: ['red', 'yellow'],
   background: 'black',
@@ -18,12 +18,10 @@ cfonts.say('LOL', {
 console.log(chalk.gray("          AUTO CLAIM DAILY HUMANITY PROTOCOL"));
 console.log(chalk.gray("                  |KAMU JOMBLO YA|"));
 
-// Config & data files
 const BASE_URL = "https://testnet.humanity.org";
 const TOKEN_FILE = "token.txt";
 const PROXY_FILE = "proxy.txt";
 
-// Load tokens
 function loadTokens() {
   if (!fs.existsSync(TOKEN_FILE)) {
     console.log(chalk.red(`❌ File ${TOKEN_FILE} tidak ditemukan!`));
@@ -36,7 +34,6 @@ function loadTokens() {
     .filter((line) => line.length > 0);
 }
 
-// Load proxies
 function loadProxies() {
   if (!fs.existsSync(PROXY_FILE)) {
     return [];
@@ -48,7 +45,6 @@ function loadProxies() {
     .filter((line) => line.length > 0);
 }
 
-// Axios instance with optional proxy
 function createAxiosInstance(proxy) {
   const config = {
     timeout: 15000,
@@ -78,7 +74,6 @@ function createAxiosInstance(proxy) {
   return axios.create(config);
 }
 
-// API call wrapper
 async function call(endpoint, token, method = "POST", body = null, axiosInstance) {
   const url = BASE_URL + endpoint;
   const headers = {
@@ -103,7 +98,6 @@ async function call(endpoint, token, method = "POST", body = null, axiosInstance
   }
 }
 
-// Process each token
 async function processToken(token, index, proxy) {
   console.log(chalk.cyan(`\n🔹 Memulai Token #${index + 1}`));
   const axiosInstance = createAxiosInstance(proxy);
@@ -158,7 +152,6 @@ async function processToken(token, index, proxy) {
   await new Promise((r) => setTimeout(r, delay * 1000));
 }
 
-// Countdown timer
 function countdown(seconds, onFinish) {
   let remaining = seconds;
   process.stdout.write("\n");
@@ -184,7 +177,6 @@ function countdown(seconds, onFinish) {
   });
 }
 
-// Main loop
 async function startRound() {
   const tokens = loadTokens();
   const proxies = loadProxies();
@@ -205,5 +197,4 @@ async function startRound() {
   countdown(24 * 60 * 60, startRound);
 }
 
-// Run
 startRound();
